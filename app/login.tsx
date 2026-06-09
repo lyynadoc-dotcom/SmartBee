@@ -102,7 +102,7 @@ export default function Login() {
   }
 };
 
-  // ─── UI ───────────────────────────────────────────────────────────────────
+  
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>SmartBee 🐝</Text>

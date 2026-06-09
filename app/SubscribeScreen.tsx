@@ -21,7 +21,6 @@ import { auth, db } from "./firebase";
 
 const { width, height } = Dimensions.get("window");
 
-// ─── Features ─────────────────────────────────────────────────────────────────
 const FEATURES = [
   { icon: "bar-chart-outline",     text: "Real-time hive monitoring"     },
   { icon: "thermometer-outline",   text: "Temperature & humidity alerts" },
@@ -31,61 +30,52 @@ const FEATURES = [
   { icon: "wifi-outline",          text: "Multi-hive remote access"      },
 ];
 
-// ─── Plans ────────────────────────────────────────────────────────────────────
 const MONTHLY_PLANS = [
   {
-    id: "1m",  name: "1 Month",  price: "$2.99", per: "/mo",
+    id: "1m", name: "1 Month",  price: "$2.99", per: "/mo",
     billed: "Billed monthly",
-    color: "#F59E0B", bg: "#FFFBEB", border: "#FDE68A",
-    months: 1,
+    color: "#F59E0B", bg: "#FFFBEB", border: "#FDE68A", months: 1,
   },
   {
-    id: "3m",  name: "3 Months", price: "$2.49", per: "/mo",
+    id: "3m", name: "3 Months", price: "$2.49", per: "/mo",
     billed: "Billed $7.49 every 3 months",
     color: "#16A34A", bg: "#F0FDF4", border: "#86EFAC",
-    badge: "Best Value",
-    months: 3,
+    badge: "Best Value", months: 3,
   },
   {
-    id: "6m",  name: "6 Months", price: "$1.99", per: "/mo",
+    id: "6m", name: "6 Months", price: "$1.99", per: "/mo",
     billed: "Billed $11.99 every 6 months",
     color: "#2563EB", bg: "#EFF6FF", border: "#93C5FD",
-    badge: "Most Popular",
-    months: 6,
+    badge: "Most Popular", months: 6,
   },
 ];
 
 const YEARLY_PLANS = [
   {
-    id: "ym",  name: "Monthly",  price: "$2.99",  per: "/mo",
+    id: "ym", name: "Monthly", price: "$2.99", per: "/mo",
     billed: "Billed $35.99 per year",
-    color: "#F59E0B", bg: "#FFFBEB", border: "#FDE68A",
-    months: 12,
+    color: "#F59E0B", bg: "#FFFBEB", border: "#FDE68A", months: 12,
   },
   {
-    id: "yy",  name: "Yearly",   price: "$1.79",  per: "/mo",
+    id: "yy", name: "Yearly",  price: "$1.79", per: "/mo",
     billed: "Billed $21.49 per year",
     color: "#2563EB", bg: "#EFF6FF", border: "#93C5FD",
-    badge: "Most Popular",
-    months: 12,
+    badge: "Most Popular", months: 12,
   },
 ];
 
 // ─── Firebase helpers ─────────────────────────────────────────────────────────
 
 /**
- * Called once on first login.
- * Creates the user doc with the REAL current date if it doesn't exist yet.
+ * Call this on SIGN UP only (not on login).
+ * Creates the user doc with today as firstLoginDate.
  */
 export const initUserDoc = async (): Promise<void> => {
   const user = auth.currentUser;
   if (!user) return;
-
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
-
   if (!snap.exists()) {
-    // ✅ FIXED: use real current date instead of hardcoded "2025-04-25"
     await setDoc(ref, {
       firstLoginDate: new Date().toISOString(),
       isSubscribed: false,
@@ -95,30 +85,23 @@ export const initUserDoc = async (): Promise<void> => {
 };
 
 /**
- * Checks Firestore to decide whether the trial has expired.
- * Trial = 30 days from firstLoginDate and no active subscription.
+ * Returns true if the 30-day trial has expired AND there is no active subscription.
  */
 export const checkTrialExpired = async (): Promise<boolean> => {
   try {
     const user = auth.currentUser;
     if (!user) return false;
-
     const snap = await getDoc(doc(db, "users", user.uid));
     if (!snap.exists()) return false;
-
     const data = snap.data();
 
-    // Active subscription → not expired
+    // Has active subscription → never expired
     if (data.isSubscribed && data.subscribedUntil) {
-      const until = new Date(data.subscribedUntil).getTime();
-      if (Date.now() < until) return false;
+      if (Date.now() < new Date(data.subscribedUntil).getTime()) return false;
     }
 
-    // Check trial window
     if (!data.firstLoginDate) return false;
-    const days =
-      (Date.now() - new Date(data.firstLoginDate).getTime()) /
-      (1000 * 60 * 60 * 24);
+    const days = (Date.now() - new Date(data.firstLoginDate).getTime()) / (1000 * 60 * 60 * 24);
     return days >= 30;
   } catch {
     return false;
@@ -126,22 +109,17 @@ export const checkTrialExpired = async (): Promise<boolean> => {
 };
 
 /**
- * Returns how many trial days are left (0–30), reading from Firestore.
+ * Returns how many trial days are left (0–30).
  */
 const getTrialDaysLeft = async (): Promise<number> => {
   try {
     const user = auth.currentUser;
     if (!user) return 30;
-
     const snap = await getDoc(doc(db, "users", user.uid));
     if (!snap.exists()) return 30;
-
     const data = snap.data();
     if (!data.firstLoginDate) return 30;
-
-    const days =
-      (Date.now() - new Date(data.firstLoginDate).getTime()) /
-      (1000 * 60 * 60 * 24);
+    const days = (Date.now() - new Date(data.firstLoginDate).getTime()) / (1000 * 60 * 60 * 24);
     return Math.max(0, Math.floor(30 - days));
   } catch {
     return 30;
@@ -166,33 +144,39 @@ const getCardBrand = (num: string): string => {
   return "";
 };
 
-// ─── Plan type ────────────────────────────────────────────────────────────────
 type Plan = {
-  id: string;
-  name: string;
-  price: string;
-  per: string;
-  billed: string;
-  color: string;
-  bg: string;
-  border: string;
-  badge?: string;
-  months: number;
+  id: string; name: string; price: string; per: string;
+  billed: string; color: string; bg: string; border: string;
+  badge?: string; months: number;
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HOW TO USE THIS SCREEN:
+//
+//  SIGN UP flow  → navigate here directly. initUserDoc() is called inside.
+//                  User sees the screen and can start free trial OR subscribe.
+//
+//  LOGIN flow    → DO NOT navigate here. Instead, in your login handler do:
+//
+//    await initUserDoc(); // safe to call, won't overwrite existing doc
+//    const expired = await checkTrialExpired();
+//    if (expired) {
+//      router.replace("/subscribe");   // trial over → show paywall
+//    } else {
+//      router.replace("/hiveDashboard"); // still in trial → go to app
+//    }
 // ─────────────────────────────────────────────────────────────────────────────
 export default function SubscribeScreen() {
   const router = useRouter();
 
   const [trialDays,    setTrialDays]    = useState(30);
   const [expiredModal, setExpiredModal] = useState(false);
+  const [isNewUser,    setIsNewUser]    = useState(false); // true = came from sign-up
 
-  // Subscribe sheet
   const [subModal,     setSubModal]     = useState(false);
   const [billing,      setBilling]      = useState<"monthly" | "yearly">("monthly");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  // Payment sheet
   const [payModal,   setPayModal]   = useState(false);
   const [cardNumber, setCardNumber] = useState("");
   const [cardName,   setCardName]   = useState("");
@@ -202,7 +186,6 @@ export default function SubscribeScreen() {
   const [paySuccess, setPaySuccess] = useState(false);
   const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
 
-  // Animations
   const fadeAnim     = useRef(new Animated.Value(0)).current;
   const slideAnim    = useRef(new Animated.Value(50)).current;
   const pulseAnim    = useRef(new Animated.Value(1)).current;
@@ -213,17 +196,26 @@ export default function SubscribeScreen() {
   const beeScale     = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
-    // ✅ FIXED: await initUserDoc before checking trial status (no more race condition)
     const init = async () => {
+      // initUserDoc only creates the doc if it doesn't exist yet (new user)
       await initUserDoc();
-      const days = await getTrialDaysLeft();
-      setTrialDays(days);
+
       const expired = await checkTrialExpired();
-      if (expired) setExpiredModal(true);
+      const days    = await getTrialDaysLeft();
+
+      setTrialDays(days);
+
+      if (expired) {
+        // Trial over → show expired modal (came from login redirect)
+        setExpiredModal(true);
+        setIsNewUser(false);
+      } else {
+        // Trial still active → this is a new sign-up, show free trial option
+        setIsNewUser(true);
+      }
     };
     init();
 
-    // Animations (run immediately, no need to wait for Firestore)
     Animated.parallel([
       Animated.timing(fadeAnim,  { toValue: 1, duration: 700, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
@@ -245,12 +237,10 @@ export default function SubscribeScreen() {
     ).start();
   }, []);
 
-  // ── Derived values ────────────────────────────────────────────────────────
   const activePlans = (billing === "monthly" ? MONTHLY_PLANS : YEARLY_PLANS) as Plan[];
   const chosenPlan  = activePlans.find((p) => p.id === selectedPlan) ?? null;
   const cardBrand   = getCardBrand(cardNumber);
 
-  // ── Sheet controls ────────────────────────────────────────────────────────
   const openSubModal = () => {
     setSubModal(true);
     setSelectedPlan(null);
@@ -276,7 +266,6 @@ export default function SubscribeScreen() {
       .start(() => setPayModal(false));
   };
 
-  // ── Validation & payment ──────────────────────────────────────────────────
   const validateCard = (): boolean => {
     const e: Record<string, string> = {};
     if (cardName.trim().length < 2)                e.name   = "Enter the cardholder name";
@@ -289,7 +278,6 @@ export default function SubscribeScreen() {
 
   const handlePay = async () => {
     if (!validateCard()) return;
-
     const user = auth.currentUser;
     if (!user) return;
 
@@ -298,27 +286,19 @@ export default function SubscribeScreen() {
     setPayLoading(false);
     setPaySuccess(true);
 
-    // Animate success tick
     successScale.setValue(0);
     Animated.spring(successScale, { toValue: 1, tension: 55, friction: 7, useNativeDriver: true }).start();
 
-    // Calculate subscribedUntil
     const months = chosenPlan?.months ?? 1;
-    const until = new Date();
+    const until  = new Date();
     until.setMonth(until.getMonth() + months);
 
-    // ── Save to Firestore ──────────────────────────────────────────────────
-    await setDoc(
-      doc(db, "users", user.uid),
-      {
-        isSubscribed:    true,
-        subscribedUntil: until.toISOString(),
-        plan:            chosenPlan?.id ?? null,
-      },
-      { merge: true }
-    );
+    await setDoc(doc(db, "users", user.uid), {
+      isSubscribed:    true,
+      subscribedUntil: until.toISOString(),
+      plan:            chosenPlan?.id ?? null,
+    }, { merge: true });
 
-    // Redirect after short delay
     setTimeout(() => {
       closePayModal();
       closeSubModal();
@@ -326,39 +306,41 @@ export default function SubscribeScreen() {
     }, 2200);
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Start free trial: just go to dashboard, firstLoginDate already saved ──
+  const handleStartTrial = () => {
+    router.replace("/hiveDashboard");
+  };
+
   return (
     <View style={s.root}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFBEB" />
-
-      {/* Decorative background shapes */}
       <View style={s.blob1} />
       <View style={s.blob2} />
       <View style={s.blob3} />
 
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} bounces={false}>
         <Animated.View style={[s.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
-          {/* ── Hero ───────────────────────────────────────────────────── */}
+          {/* ── Hero ── */}
           <View style={s.heroWrap}>
             <Animated.View style={[s.beeBadge, { transform: [{ scale: beeScale }] }]}>
               <Text style={s.beeEmoji}>🐝</Text>
             </Animated.View>
             <Text style={s.headline}>Smart Bee Pro</Text>
-            <Text style={s.tagline}>Everything you need to keep{"\n"}your hives healthy & thriving</Text>
-
-            {/* Free trial pill */}
+            <Text style={s.tagline}>
+              {isNewUser
+                ? "Everything you need to keep\nyour hives healthy & thriving"
+                : "Your free trial has ended.\nSubscribe to keep your hives monitored."}
+            </Text>
             <View style={s.trialPill}>
-              <Ionicons name="gift-outline" size={13} color="#92400E" />
-              <Text style={s.trialPillText}>30 days free — no card needed</Text>
+              <Ionicons name={isNewUser ? "gift-outline" : "time-outline"} size={13} color="#92400E" />
+              <Text style={s.trialPillText}>
+                {isNewUser ? "30 days free — no card needed" : "30-day free trial ended"}
+              </Text>
             </View>
           </View>
 
-          {/* ── Feature list ───────────────────────────────────────────── */}
+          {/* ── Features ── */}
           <View style={s.featureCard}>
             {FEATURES.map((f, i) => (
               <Animated.View
@@ -368,9 +350,7 @@ export default function SubscribeScreen() {
                   i === FEATURES.length - 1 && { borderBottomWidth: 0 },
                   {
                     opacity: featureAnims[i],
-                    transform: [{
-                      translateX: featureAnims[i].interpolate({ inputRange: [0, 1], outputRange: [-18, 0] }),
-                    }],
+                    transform: [{ translateX: featureAnims[i].interpolate({ inputRange: [0, 1], outputRange: [-18, 0] }) }],
                   },
                 ]}
               >
@@ -383,55 +363,49 @@ export default function SubscribeScreen() {
             ))}
           </View>
 
-          {/* ── CTA buttons ────────────────────────────────────────────── */}
-          <Animated.View style={[s.ctaWrap, { transform: [{ scale: pulseAnim }] }]}>
-            <TouchableOpacity
-              style={s.trialBtn}
-              onPress={() => router.replace("/hiveDashboard")}
-              activeOpacity={0.87}
-            >
-              <Ionicons name="rocket-outline" size={18} color="#fff" />
-              <Text style={s.trialBtnText}>
-                {trialDays > 0 ? "Start Free Trial" : "Go to Dashboard"}
+          {/* ── CTAs ── */}
+          {isNewUser ? (
+            <>
+              {/* New user: Start Free Trial + Subscribe option */}
+              <Animated.View style={[s.ctaWrap, { transform: [{ scale: pulseAnim }] }]}>
+                <TouchableOpacity style={s.trialBtn} onPress={handleStartTrial} activeOpacity={0.87}>
+                  <Ionicons name="rocket-outline" size={18} color="#fff" />
+                  <Text style={s.trialBtnText}>Start Free Trial</Text>
+                </TouchableOpacity>
+              </Animated.View>
+
+              <TouchableOpacity style={s.subscribeBtn} onPress={openSubModal} activeOpacity={0.85}>
+                <Ionicons name="star-outline" size={17} color="#F59E0B" />
+                <Text style={s.subscribeBtnText}>Subscribe now</Text>
+              </TouchableOpacity>
+
+              <Text style={s.finePrint}>
+                {trialDays} days free · No payment required · Cancel anytime
               </Text>
-            </TouchableOpacity>
-          </Animated.View>
+            </>
+          ) : (
+            <>
+              {/* Expired user: only Subscribe */}
+              <Animated.View style={[s.ctaWrap, { transform: [{ scale: pulseAnim }] }]}>
+                <TouchableOpacity style={s.trialBtn} onPress={openSubModal} activeOpacity={0.87}>
+                  <Ionicons name="star-outline" size={18} color="#fff" />
+                  <Text style={s.trialBtnText}>View Plans</Text>
+                </TouchableOpacity>
+              </Animated.View>
 
-          <TouchableOpacity style={s.subscribeBtn} onPress={openSubModal} activeOpacity={0.85}>
-            <Ionicons name="star-outline" size={17} color="#F59E0B" />
-            <Text style={s.subscribeBtnText}>Subscribe now</Text>
-          </TouchableOpacity>
-
-          <Text style={s.finePrint}>
-            {trialDays > 0
-              ? `${trialDays} days free • No payment required • Cancel anytime`
-              : "Subscribe to continue using Smart Bee Pro"}
-          </Text>
-
-          {trialDays > 0 && (
-            <TouchableOpacity
-              onPress={() => router.replace("/hiveDashboard")}
-              activeOpacity={0.6}
-              style={s.skipBtn}
-            >
-              <Text style={s.skipText}>Skip for now</Text>
-              <Ionicons name="chevron-forward" size={13} color="#C4B5A0" />
-            </TouchableOpacity>
+              <Text style={s.finePrint}>Subscribe to continue using Smart Bee Pro</Text>
+            </>
           )}
 
         </Animated.View>
       </ScrollView>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          SUBSCRIBE BOTTOM SHEET
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ SUBSCRIBE BOTTOM SHEET ═══ */}
       <Modal visible={subModal} transparent animationType="none" onRequestClose={closeSubModal}>
         <View style={s.overlay}>
           <TouchableOpacity style={s.overlayTap} activeOpacity={1} onPress={closeSubModal} />
           <Animated.View style={[s.sheet, { transform: [{ translateY: subSlide }] }]}>
             <View style={s.handle} />
-
-            {/* Sheet header */}
             <View style={s.sheetHeader}>
               <View style={s.sheetTitleWrap}>
                 <Text style={s.sheetTitle}>Smart Bee Pro</Text>
@@ -442,44 +416,22 @@ export default function SubscribeScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Monthly / Yearly toggle */}
             <View style={s.toggle}>
-              <TouchableOpacity
-                style={[s.toggleOption, billing === "monthly" && s.toggleSelected]}
-                onPress={() => { setBilling("monthly"); setSelectedPlan(null); }}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity style={[s.toggleOption, billing === "monthly" && s.toggleSelected]} onPress={() => { setBilling("monthly"); setSelectedPlan(null); }} activeOpacity={0.8}>
                 <Text style={[s.toggleOptionText, billing === "monthly" && s.toggleSelectedText]}>Monthly</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.toggleOption, billing === "yearly" && s.toggleSelected]}
-                onPress={() => { setBilling("yearly"); setSelectedPlan(null); }}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity style={[s.toggleOption, billing === "yearly" && s.toggleSelected]} onPress={() => { setBilling("yearly"); setSelectedPlan(null); }} activeOpacity={0.8}>
                 <Text style={[s.toggleOptionText, billing === "yearly" && s.toggleSelectedText]}>Yearly</Text>
                 <View style={s.savePill}><Text style={s.savePillText}>−40%</Text></View>
               </TouchableOpacity>
             </View>
 
-            {/* Plan list */}
             <View style={s.planList}>
               {activePlans.map((p) => {
                 const sel = selectedPlan === p.id;
                 return (
-                  <TouchableOpacity
-                    key={p.id}
-                    style={[
-                      s.planCard,
-                      { backgroundColor: p.bg, borderColor: sel ? p.color : p.border, borderWidth: sel ? 2 : 1 },
-                    ]}
-                    onPress={() => setSelectedPlan(p.id)}
-                    activeOpacity={0.82}
-                  >
-                    {p.badge && (
-                      <View style={[s.planBadge, { backgroundColor: p.color }]}>
-                        <Text style={s.planBadgeText}>{p.badge}</Text>
-                      </View>
-                    )}
+                  <TouchableOpacity key={p.id} style={[s.planCard, { backgroundColor: p.bg, borderColor: sel ? p.color : p.border, borderWidth: sel ? 2 : 1 }]} onPress={() => setSelectedPlan(p.id)} activeOpacity={0.82}>
+                    {p.badge && <View style={[s.planBadge, { backgroundColor: p.color }]}><Text style={s.planBadgeText}>{p.badge}</Text></View>}
                     <View style={s.planRow}>
                       <View style={[s.radio, { borderColor: p.color }]}>
                         {sel && <View style={[s.radioDot, { backgroundColor: p.color }]} />}
@@ -498,43 +450,23 @@ export default function SubscribeScreen() {
               })}
             </View>
 
-            {/* Continue CTA */}
-            <TouchableOpacity
-              style={[
-                s.sheetCta,
-                { backgroundColor: chosenPlan?.color ?? "#F59E0B", opacity: chosenPlan ? 1 : 0.35 },
-              ]}
-              onPress={() => chosenPlan && openPayModal()}
-              disabled={!chosenPlan}
-              activeOpacity={0.88}
-            >
+            <TouchableOpacity style={[s.sheetCta, { backgroundColor: chosenPlan?.color ?? "#F59E0B", opacity: chosenPlan ? 1 : 0.35 }]} onPress={() => chosenPlan && openPayModal()} disabled={!chosenPlan} activeOpacity={0.88}>
               <Ionicons name="card-outline" size={19} color="#fff" />
-              <Text style={s.sheetCtaText}>
-                {chosenPlan ? `Continue — ${chosenPlan.price} ${chosenPlan.per}` : "Select a plan"}
-              </Text>
+              <Text style={s.sheetCtaText}>{chosenPlan ? `Continue — ${chosenPlan.price} ${chosenPlan.per}` : "Select a plan"}</Text>
             </TouchableOpacity>
-
             <Text style={s.sheetFine}>Secure payment · No hidden fees · Cancel anytime</Text>
           </Animated.View>
         </View>
       </Modal>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          PAYMENT BOTTOM SHEET
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ PAYMENT BOTTOM SHEET ═══ */}
       <Modal visible={payModal} transparent animationType="none" onRequestClose={closePayModal}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
           <View style={s.overlay}>
-            <TouchableOpacity
-              style={s.overlayTap}
-              activeOpacity={1}
-              onPress={!payLoading ? closePayModal : undefined}
-            />
+            <TouchableOpacity style={s.overlayTap} activeOpacity={1} onPress={!payLoading ? closePayModal : undefined} />
             <Animated.View style={[s.paySheet, { transform: [{ translateY: paySlide }] }]}>
               <View style={s.handle} />
-
               {paySuccess ? (
-                /* ── Success state ─────────────────────────────────── */
                 <View style={s.successWrap}>
                   <Animated.View style={[s.successCircle, { transform: [{ scale: successScale }] }]}>
                     <Ionicons name="checkmark" size={50} color="#fff" />
@@ -545,21 +477,13 @@ export default function SubscribeScreen() {
                 </View>
               ) : (
                 <>
-                  {/* ── Pay sheet header ──────────────────────────── */}
                   <View style={s.sheetHeader}>
-                    <TouchableOpacity
-                      style={s.backBtn}
-                      onPress={closePayModal}
-                      disabled={payLoading}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
+                    <TouchableOpacity style={s.backBtn} onPress={closePayModal} disabled={payLoading} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       <Ionicons name="arrow-back" size={17} color="#78716C" />
                     </TouchableOpacity>
                     <View style={{ flex: 1, marginLeft: 10 }}>
                       <Text style={s.sheetTitle}>Payment Details</Text>
-                      <Text style={s.sheetSub}>
-                        {chosenPlan?.name} · {chosenPlan?.price} {chosenPlan?.per}
-                      </Text>
+                      <Text style={s.sheetSub}>{chosenPlan?.name} · {chosenPlan?.price} {chosenPlan?.per}</Text>
                     </View>
                     <View style={s.secureTag}>
                       <Ionicons name="lock-closed" size={12} color="#16A34A" />
@@ -567,20 +491,13 @@ export default function SubscribeScreen() {
                     </View>
                   </View>
 
-                  {/* ── Card visual ───────────────────────────────── */}
                   <View style={[s.cardVisual, { backgroundColor: chosenPlan?.color ?? "#F59E0B" }]}>
                     <View style={s.cardVisualTop}>
                       <Text style={s.cardVisualAppName}>Smart Bee Pro</Text>
-                      {cardBrand ? (
-                        <Text style={s.cardVisualBrand}>{cardBrand}</Text>
-                      ) : (
-                        <View style={s.chipShape} />
-                      )}
+                      {cardBrand ? <Text style={s.cardVisualBrand}>{cardBrand}</Text> : <View style={s.chipShape} />}
                     </View>
                     <Text style={s.cardVisualNumber}>
-                      {cardNumber
-                        ? cardNumber.padEnd(19).replace(/ /g, "").replace(/(\d{4})/g, "$1 ").trim()
-                        : "•••• •••• •••• ••••"}
+                      {cardNumber ? cardNumber.padEnd(19).replace(/ /g, "").replace(/(\d{4})/g, "$1 ").trim() : "•••• •••• •••• ••••"}
                     </Text>
                     <View style={s.cardVisualBottom}>
                       <View>
@@ -594,42 +511,19 @@ export default function SubscribeScreen() {
                     </View>
                   </View>
 
-                  {/* ── Form ─────────────────────────────────────── */}
                   <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-
                     <Text style={s.fieldLabel}>Cardholder Name</Text>
                     <View style={[s.inputRow, cardErrors.name ? s.inputRowErr : null]}>
                       <Ionicons name="person-outline" size={16} color="#B5A898" style={{ marginRight: 8 }} />
-                      <TextInput
-                        style={s.input}
-                        placeholder="Full name on card"
-                        placeholderTextColor="#C9BAA8"
-                        value={cardName}
-                        onChangeText={(t) => { setCardName(t); setCardErrors((e) => ({ ...e, name: "" })); }}
-                        autoCapitalize="words"
-                        returnKeyType="next"
-                      />
+                      <TextInput style={s.input} placeholder="Full name on card" placeholderTextColor="#C9BAA8" value={cardName} onChangeText={(t) => { setCardName(t); setCardErrors((e) => ({ ...e, name: "" })); }} autoCapitalize="words" returnKeyType="next" />
                     </View>
                     {cardErrors.name ? <Text style={s.errText}>{cardErrors.name}</Text> : null}
 
                     <Text style={s.fieldLabel}>Card Number</Text>
                     <View style={[s.inputRow, cardErrors.number ? s.inputRowErr : null]}>
                       <Ionicons name="card-outline" size={16} color="#B5A898" style={{ marginRight: 8 }} />
-                      <TextInput
-                        style={s.input}
-                        placeholder="0000  0000  0000  0000"
-                        placeholderTextColor="#C9BAA8"
-                        value={cardNumber}
-                        onChangeText={(t) => { setCardNumber(formatCardNumber(t)); setCardErrors((e) => ({ ...e, number: "" })); }}
-                        keyboardType="number-pad"
-                        maxLength={19}
-                        returnKeyType="next"
-                      />
-                      {cardBrand ? (
-                        <View style={s.brandTag}>
-                          <Text style={s.brandTagText}>{cardBrand}</Text>
-                        </View>
-                      ) : null}
+                      <TextInput style={s.input} placeholder="0000  0000  0000  0000" placeholderTextColor="#C9BAA8" value={cardNumber} onChangeText={(t) => { setCardNumber(formatCardNumber(t)); setCardErrors((e) => ({ ...e, number: "" })); }} keyboardType="number-pad" maxLength={19} returnKeyType="next" />
+                      {cardBrand ? <View style={s.brandTag}><Text style={s.brandTagText}>{cardBrand}</Text></View> : null}
                     </View>
                     {cardErrors.number ? <Text style={s.errText}>{cardErrors.number}</Text> : null}
 
@@ -638,65 +532,26 @@ export default function SubscribeScreen() {
                         <Text style={s.fieldLabel}>Expiry Date</Text>
                         <View style={[s.inputRow, cardErrors.expiry ? s.inputRowErr : null]}>
                           <Ionicons name="calendar-outline" size={16} color="#B5A898" style={{ marginRight: 8 }} />
-                          <TextInput
-                            style={s.input}
-                            placeholder="MM/YY"
-                            placeholderTextColor="#C9BAA8"
-                            value={expiry}
-                            onChangeText={(t) => { setExpiry(formatExpiry(t)); setCardErrors((e) => ({ ...e, expiry: "" })); }}
-                            keyboardType="number-pad"
-                            maxLength={5}
-                            returnKeyType="next"
-                          />
+                          <TextInput style={s.input} placeholder="MM/YY" placeholderTextColor="#C9BAA8" value={expiry} onChangeText={(t) => { setExpiry(formatExpiry(t)); setCardErrors((e) => ({ ...e, expiry: "" })); }} keyboardType="number-pad" maxLength={5} returnKeyType="next" />
                         </View>
                         {cardErrors.expiry ? <Text style={s.errText}>{cardErrors.expiry}</Text> : null}
                       </View>
-
                       <View style={{ flex: 1 }}>
                         <Text style={s.fieldLabel}>CVV</Text>
                         <View style={[s.inputRow, cardErrors.cvv ? s.inputRowErr : null]}>
                           <Ionicons name="lock-closed-outline" size={16} color="#B5A898" style={{ marginRight: 8 }} />
-                          <TextInput
-                            style={s.input}
-                            placeholder="•••"
-                            placeholderTextColor="#C9BAA8"
-                            value={cvv}
-                            onChangeText={(t) => { setCvv(t.replace(/\D/g, "").slice(0, 4)); setCardErrors((e) => ({ ...e, cvv: "" })); }}
-                            keyboardType="number-pad"
-                            maxLength={4}
-                            secureTextEntry
-                            returnKeyType="done"
-                          />
+                          <TextInput style={s.input} placeholder="•••" placeholderTextColor="#C9BAA8" value={cvv} onChangeText={(t) => { setCvv(t.replace(/\D/g, "").slice(0, 4)); setCardErrors((e) => ({ ...e, cvv: "" })); }} keyboardType="number-pad" maxLength={4} secureTextEntry returnKeyType="done" />
                         </View>
                         {cardErrors.cvv ? <Text style={s.errText}>{cardErrors.cvv}</Text> : null}
                       </View>
                     </View>
 
-                    <TouchableOpacity
-                      style={[
-                        s.payBtn,
-                        { backgroundColor: chosenPlan?.color ?? "#F59E0B" },
-                        payLoading && { opacity: 0.65 },
-                      ]}
-                      onPress={handlePay}
-                      disabled={payLoading}
-                      activeOpacity={0.87}
-                    >
-                      {payLoading ? (
-                        <Text style={s.payBtnText}>Processing…</Text>
-                      ) : (
-                        <>
-                          <Ionicons name="lock-closed" size={16} color="#fff" />
-                          <Text style={s.payBtnText}>Pay {chosenPlan?.price}</Text>
-                        </>
-                      )}
+                    <TouchableOpacity style={[s.payBtn, { backgroundColor: chosenPlan?.color ?? "#F59E0B" }, payLoading && { opacity: 0.65 }]} onPress={handlePay} disabled={payLoading} activeOpacity={0.87}>
+                      {payLoading
+                        ? <Text style={s.payBtnText}>Processing…</Text>
+                        : <><Ionicons name="lock-closed" size={16} color="#fff" /><Text style={s.payBtnText}>Pay {chosenPlan?.price}</Text></>}
                     </TouchableOpacity>
-
-                    <Text style={s.payFine}>
-                      🔒  Your payment is encrypted and secure.
-                      {"\n"}We never store your card details.
-                    </Text>
-
+                    <Text style={s.payFine}>🔒  Your payment is encrypted and secure.{"\n"}We never store your card details.</Text>
                   </ScrollView>
                 </>
               )}
@@ -705,7 +560,7 @@ export default function SubscribeScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* ── Trial expired modal ───────────────────────────────────────── */}
+      {/* ── Trial expired modal ── */}
       <Modal visible={expiredModal} transparent animationType="fade">
         <View style={s.centeredOverlay}>
           <View style={s.expiredBox}>
@@ -714,14 +569,9 @@ export default function SubscribeScreen() {
             </View>
             <Text style={s.expiredTitle}>Free Trial Ended</Text>
             <Text style={s.expiredBody}>
-              Your 30-day free trial has expired.{"\n"}
-              Subscribe to continue monitoring your hives.
+              Your 30-day free trial has expired.{"\n"}Subscribe to continue monitoring your hives.
             </Text>
-            <TouchableOpacity
-              style={s.expiredCta}
-              onPress={() => { setExpiredModal(false); openSubModal(); }}
-              activeOpacity={0.87}
-            >
+            <TouchableOpacity style={s.expiredCta} onPress={() => { setExpiredModal(false); openSubModal(); }} activeOpacity={0.87}>
               <Text style={s.expiredCtaText}>See Plans</Text>
             </TouchableOpacity>
           </View>
@@ -731,7 +581,6 @@ export default function SubscribeScreen() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   root:   { flex: 1, backgroundColor: "#FFFBEB" },
   scroll: { alignItems: "center", paddingTop: 60, paddingBottom: 50 },
@@ -741,18 +590,18 @@ const s = StyleSheet.create({
   blob2: { position: "absolute", bottom: -80, left: -70, width: 220, height: 220, borderRadius: 110, backgroundColor: "#FCD34D", opacity: 0.28 },
   blob3: { position: "absolute", top: "38%", left: -50,  width: 130, height: 130, borderRadius: 65,  backgroundColor: "#F59E0B", opacity: 0.1 },
 
-  heroWrap:     { alignItems: "center", marginBottom: 28 },
-  beeBadge:     { width: 96, height: 96, borderRadius: 48, backgroundColor: "#FEF3C7", borderWidth: 3, borderColor: "#FDE68A", justifyContent: "center", alignItems: "center", marginBottom: 18, elevation: 4 },
-  beeEmoji:     { fontSize: 46 },
-  headline:     { fontSize: 32, fontWeight: "800", color: "#1C1917", letterSpacing: -0.6, marginBottom: 8, textAlign: "center" },
-  tagline:      { fontSize: 14, color: "#78716C", textAlign: "center", lineHeight: 22, marginBottom: 16 },
-  trialPill:    { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#FEF3C7", borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20 },
-  trialPillText:{ fontSize: 12, fontWeight: "600", color: "#92400E" },
+  heroWrap:      { alignItems: "center", marginBottom: 28 },
+  beeBadge:      { width: 96, height: 96, borderRadius: 48, backgroundColor: "#FEF3C7", borderWidth: 3, borderColor: "#FDE68A", justifyContent: "center", alignItems: "center", marginBottom: 18, elevation: 4 },
+  beeEmoji:      { fontSize: 46 },
+  headline:      { fontSize: 32, fontWeight: "800", color: "#1C1917", letterSpacing: -0.6, marginBottom: 8, textAlign: "center" },
+  tagline:       { fontSize: 14, color: "#78716C", textAlign: "center", lineHeight: 22, marginBottom: 16 },
+  trialPill:     { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#FEF3C7", borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20 },
+  trialPillText: { fontSize: 12, fontWeight: "600", color: "#92400E" },
 
-  featureCard: { width: "100%", backgroundColor: "#fff", borderRadius: 22, paddingHorizontal: 18, paddingVertical: 4, borderWidth: 1, borderColor: "#FDE68A", marginBottom: 28, elevation: 2 },
-  featureRow:  { flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 12, borderBottomWidth: 1, borderBottomColor: "#FEF3C7" },
+  featureCard:     { width: "100%", backgroundColor: "#fff", borderRadius: 22, paddingHorizontal: 18, paddingVertical: 4, borderWidth: 1, borderColor: "#FDE68A", marginBottom: 28, elevation: 2 },
+  featureRow:      { flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 12, borderBottomWidth: 1, borderBottomColor: "#FEF3C7" },
   featureIconWrap: { width: 34, height: 34, borderRadius: 10, backgroundColor: "#FFFBEB", justifyContent: "center", alignItems: "center" },
-  featureText: { flex: 1, fontSize: 14, fontWeight: "500", color: "#292524" },
+  featureText:     { flex: 1, fontSize: 14, fontWeight: "500", color: "#292524" },
 
   ctaWrap:          { width: "100%", marginBottom: 12 },
   trialBtn:         { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, backgroundColor: "#F59E0B", paddingVertical: 16, borderRadius: 18, width: "100%", elevation: 5 },
@@ -760,24 +609,13 @@ const s = StyleSheet.create({
   subscribeBtn:     { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 2, borderColor: "#F59E0B", paddingVertical: 14, borderRadius: 18, width: "100%", marginBottom: 14 },
   subscribeBtnText: { fontSize: 15, fontWeight: "700", color: "#F59E0B" },
   finePrint:        { fontSize: 11.5, color: "#A8A29E", textAlign: "center", lineHeight: 17 },
-  skipBtn:          { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 16, paddingVertical: 6 },
-  skipText:         { fontSize: 13, color: "#B5A898", fontWeight: "500" },
 
   overlay:    { flex: 1, backgroundColor: "rgba(0,0,0,0.42)", justifyContent: "flex-end" },
   overlayTap: { flex: 1 },
   handle:     { width: 38, height: 4, backgroundColor: "#E0D9CF", borderRadius: 2, alignSelf: "center", marginTop: 10, marginBottom: 18 },
 
-  sheet: {
-    backgroundColor: "#FFFBEB",
-    borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    paddingHorizontal: 22, paddingBottom: 40,
-  },
-  paySheet: {
-    backgroundColor: "#FFFBEB",
-    borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    paddingHorizontal: 22, paddingBottom: 36,
-    maxHeight: height * 0.94,
-  },
+  sheet:    { backgroundColor: "#FFFBEB", borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingBottom: 40 },
+  paySheet: { backgroundColor: "#FFFBEB", borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingBottom: 36, maxHeight: height * 0.94 },
 
   sheetHeader:    { flexDirection: "row", alignItems: "center", marginBottom: 20 },
   sheetTitleWrap: { flex: 1 },
@@ -814,15 +652,15 @@ const s = StyleSheet.create({
   secureTag:     { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#DCFCE7", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4 },
   secureTagText: { fontSize: 11, fontWeight: "700", color: "#16A34A" },
 
-  cardVisual:       { borderRadius: 20, padding: 22, marginBottom: 22, elevation: 3 },
-  cardVisualTop:    { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-  cardVisualAppName:{ fontSize: 13, fontWeight: "800", color: "rgba(255,255,255,0.92)", letterSpacing: 0.5 },
-  cardVisualBrand:  { fontSize: 14, fontWeight: "800", color: "rgba(255,255,255,0.85)" },
-  chipShape:        { width: 32, height: 24, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.3)" },
-  cardVisualNumber: { fontSize: 17, fontWeight: "700", color: "#fff", letterSpacing: 3, marginVertical: 12 },
-  cardVisualBottom: { flexDirection: "row", gap: 36 },
-  cardVisualLabel:  { fontSize: 8, color: "rgba(255,255,255,0.6)", letterSpacing: 1 },
-  cardVisualValue:  { fontSize: 13, fontWeight: "700", color: "#fff", marginTop: 3, letterSpacing: 0.5 },
+  cardVisual:        { borderRadius: 20, padding: 22, marginBottom: 22, elevation: 3 },
+  cardVisualTop:     { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  cardVisualAppName: { fontSize: 13, fontWeight: "800", color: "rgba(255,255,255,0.92)", letterSpacing: 0.5 },
+  cardVisualBrand:   { fontSize: 14, fontWeight: "800", color: "rgba(255,255,255,0.85)" },
+  chipShape:         { width: 32, height: 24, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.3)" },
+  cardVisualNumber:  { fontSize: 17, fontWeight: "700", color: "#fff", letterSpacing: 3, marginVertical: 12 },
+  cardVisualBottom:  { flexDirection: "row", gap: 36 },
+  cardVisualLabel:   { fontSize: 8, color: "rgba(255,255,255,0.6)", letterSpacing: 1 },
+  cardVisualValue:   { fontSize: 13, fontWeight: "700", color: "#fff", marginTop: 3, letterSpacing: 0.5 },
 
   fieldLabel:  { fontSize: 12, fontWeight: "600", color: "#78716C", marginBottom: 6, marginTop: 12 },
   inputRow:    { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 13, borderWidth: 1, borderColor: "#E5DDD0", paddingHorizontal: 12, height: 50 },

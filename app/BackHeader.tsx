@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   bar:   {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 52,          // clears the status bar on most devices
+    paddingTop: 52,         
     paddingBottom: 14,
     paddingHorizontal: 16,
     gap: 6,

@@ -31,13 +31,13 @@ export default function Account() {
   const [loading, setLoading]   = useState(true);
   const [saving,  setSaving]    = useState(false);
 
-  // Profile data from Firestore
+ 
   const [name,    setName]    = useState("");
   const [surname, setSurname] = useState("");
   const [email,   setEmail]   = useState("");
   const [photo,   setPhoto]   = useState<string | null>(null);
 
-  // Editable fields
+ 
   const [newName,           setNewName]           = useState("");
   const [newSurname,        setNewSurname]        = useState("");
   const [newEmail,          setNewEmail]          = useState("");
@@ -45,7 +45,7 @@ export default function Account() {
   const [newPassword,       setNewPassword]       = useState("");
   const [confirmPassword,   setConfirmPassword]   = useState("");
 
-  // Visibility toggles
+  
   const [showNameFields,    setShowNameFields]    = useState(false);
   const [showEmailField,    setShowEmailField]    = useState(false);
   const [showPasswordField, setShowPasswordField] = useState(false);
@@ -53,12 +53,11 @@ export default function Account() {
   const [showPw,            setShowPw]            = useState(false);
   const [showConfirmPw,     setShowConfirmPw]     = useState(false);
 
-  // Errors
+
   const [nameError,     setNameError]     = useState("");
   const [emailError,    setEmailError]    = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-  // ── Load user from Firebase on mount ──────────────────────────────────────
   useEffect(() => {
     const load = async () => {
       try {
@@ -68,10 +67,10 @@ export default function Account() {
           return;
         }
 
-        // Email comes from Firebase Auth
+       
         setEmail(user.email ?? "");
 
-        // Name/photo come from Firestore users doc
+      
         const snap = await getDoc(doc(db, "users", user.uid));
         if (snap.exists()) {
           const data = snap.data();
@@ -90,7 +89,7 @@ export default function Account() {
     load();
   }, []);
 
-  // ── Photo picker ──────────────────────────────────────────────────────────
+
   const pickImage = async () => {
     const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!granted) { Alert.alert("Permission required"); return; }
@@ -100,7 +99,7 @@ export default function Account() {
     if (!result.canceled) setPhoto(result.assets[0].uri);
   };
 
-  // ── Validators ────────────────────────────────────────────────────────────
+ 
   const validateName = () => {
     if (newName.trim().length < 2)    { setNameError("First name must be at least 2 characters."); return false; }
     if (newSurname.trim().length < 2) { setNameError("Surname must be at least 2 characters.");    return false; }
@@ -124,7 +123,7 @@ export default function Account() {
     setPasswordError(""); return true;
   };
 
-  // ── Save ──────────────────────────────────────────────────────────────────
+
   const handleSave = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -137,24 +136,24 @@ export default function Account() {
 
     setSaving(true);
     try {
-      // ── Re-authenticate if changing email or password ──────────────────
+      
       if ((showEmailField && newEmail) || (showPasswordField && newPassword)) {
         const credential = EmailAuthProvider.credential(user.email!, currentPassword);
         await reauthenticateWithCredential(user, credential);
       }
 
-      // ── Update email in Firebase Auth ──────────────────────────────────
+     
       if (showEmailField && newEmail && newEmail !== user.email) {
         await updateEmail(user, newEmail.trim());
         setEmail(newEmail.trim());
       }
 
-      // ── Update password in Firebase Auth ──────────────────────────────
+     
       if (showPasswordField && newPassword) {
         await updatePassword(user, newPassword);
       }
 
-      // ── Update name & photo in Firestore ───────────────────────────────
+    
       const updatedName    = showNameFields ? newName.trim()    : name;
       const updatedSurname = showNameFields ? newSurname.trim() : surname;
 
@@ -167,7 +166,7 @@ export default function Account() {
       setName(updatedName);
       setSurname(updatedSurname);
 
-      // Reset form
+     
       setNewEmail(""); setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setShowNameFields(false); setShowEmailField(false); setShowPasswordField(false);
 
@@ -187,7 +186,7 @@ export default function Account() {
     }
   };
 
-  // ── Loading state ─────────────────────────────────────────────────────────
+ 
   if (loading) {
     return (
       <View style={styles.loadingWrap}>
@@ -198,7 +197,7 @@ export default function Account() {
 
   const fullName = `${name} ${surname}`.trim();
 
-  // ── Render ────────────────────────────────────────────────────────────────
+ 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <BackHeader title="Account" />
@@ -209,7 +208,7 @@ export default function Account() {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* ── Profile picture + name ──────────────────────────────────────── */}
+        
         <View style={styles.profileContainer}>
           <TouchableOpacity onPress={pickImage} activeOpacity={0.85}>
             <View style={styles.avatarWrapper}>
@@ -226,7 +225,7 @@ export default function Account() {
           <Text style={styles.displayEmail}>{email}</Text>
         </View>
 
-        {/* ── Full Name ───────────────────────────────────────────────────── */}
+       
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="person-outline" size={18} color="#FFC107" />
@@ -260,7 +259,7 @@ export default function Account() {
           )}
         </View>
 
-        {/* ── Email ───────────────────────────────────────────────────────── */}
+      
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="mail-outline" size={18} color="#FFC107" />
@@ -302,7 +301,7 @@ export default function Account() {
           )}
         </View>
 
-        {/* ── Password ────────────────────────────────────────────────────── */}
+        
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="lock-closed-outline" size={18} color="#FFC107" />
@@ -319,7 +318,7 @@ export default function Account() {
 
           {showPasswordField && (
             <>
-              {/* Current password */}
+        
               <View style={[styles.pwRow, passwordError ? styles.inputError : null]}>
                 <TextInput
                   style={styles.pwInput}
@@ -333,7 +332,7 @@ export default function Account() {
                 </TouchableOpacity>
               </View>
 
-              {/* New password */}
+            
               <View style={[styles.pwRow, passwordError ? styles.inputError : null]}>
                 <TextInput
                   style={styles.pwInput}
@@ -347,7 +346,7 @@ export default function Account() {
                 </TouchableOpacity>
               </View>
 
-              {/* Confirm password */}
+             
               <View style={[styles.pwRow, passwordError ? styles.inputError : null]}>
                 <TextInput
                   style={styles.pwInput}
@@ -374,7 +373,6 @@ export default function Account() {
           )}
         </View>
 
-        {/* ── Save button ─────────────────────────────────────────────────── */}
         <TouchableOpacity
           style={[styles.saveBtn, saving && { opacity: 0.7 }]}
           onPress={handleSave}
@@ -391,7 +389,7 @@ export default function Account() {
   );
 }
 
-// ─── Password rule hint row ───────────────────────────────────────────────────
+
 function Hint({ ok, text }: { ok: boolean; text: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 3 }}>
@@ -401,7 +399,7 @@ function Hint({ ok, text }: { ok: boolean; text: string }) {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: "#fff", padding: 20 },
   loadingWrap: { flex: 1, justifyContent: "center", alignItems: "center" },
