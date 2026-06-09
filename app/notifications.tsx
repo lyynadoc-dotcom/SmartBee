@@ -43,11 +43,11 @@ export default function NotificationsScreen() {
   const subAnim    = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Load saved prefs
+   
     AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
       if (stored) setPrefs(JSON.parse(stored));
     });
-    // Staggered entrance
+  
     [masterAnim, badgeAnim, subAnim].forEach((a, i) =>
       Animated.timing(a, {
         toValue: 1, duration: 380,
@@ -75,7 +75,7 @@ export default function NotificationsScreen() {
       await savePrefs({ ...prefs, [key]: value });
     };
 
-  // A sub-toggle is effectively ON only when master is also ON
+
   const isOn = (key: keyof NotifPrefs) => prefs.master && prefs[key];
 
   const animStyle = (anim: Animated.Value) => ({
@@ -86,12 +86,12 @@ export default function NotificationsScreen() {
   return (
     <View style={styles.container}>
 
-      {/* ← Back header */}
+    
       <BackHeader title={t.notifications ?? "Notifications"} />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* ── Master toggle card ──────────────────────────────────────────── */}
+        
         <Animated.View style={[styles.masterCard, animStyle(masterAnim)]}>
           <View style={[styles.masterIconWrap, { backgroundColor: prefs.master ? "#FFC107" : "#e0e0e0" }]}>
             <Ionicons
@@ -111,7 +111,7 @@ export default function NotificationsScreen() {
           />
         </Animated.View>
 
-        {/* ── Status badge ────────────────────────────────────────────────── */}
+        
         <Animated.View style={[
           styles.statusBadge,
           animStyle(badgeAnim),
@@ -127,7 +127,7 @@ export default function NotificationsScreen() {
           </Text>
         </Animated.View>
 
-        {/* ── Sub-toggles card ────────────────────────────────────────────── */}
+        
         <Animated.View style={[styles.subCard, animStyle(subAnim)]}>
 
           <NotifRow
@@ -184,7 +184,7 @@ export default function NotificationsScreen() {
   );
 }
 
-// ─── Reusable toggle row ──────────────────────────────────────────────────────
+
 function NotifRow({
   icon, iconColor, iconBg, label, sub, value, disabled, onToggle,
 }: {
@@ -213,7 +213,7 @@ function NotifRow({
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const rowStyles = StyleSheet.create({
   row:           { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 12 },
   rowDisabled:   { opacity: 0.45 },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   scroll:    { paddingHorizontal: 22, paddingBottom: 40 },
 
-  // Master card
+ 
   masterCard:     {
     flexDirection: "row", alignItems: "center", gap: 14,
     backgroundColor: "#FAFAFA", padding: 16, borderRadius: 18,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   masterLabel:    { fontSize: 15, fontWeight: "bold", color: "#1a1a1a" },
   masterSub:      { fontSize: 12, color: "#aaa", marginTop: 2 },
 
-  // Status badge
+  
   statusBadge: {
     flexDirection: "row", alignItems: "center", gap: 6,
     alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 6,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   statusText: { fontSize: 12.5, fontWeight: "600" },
 
-  // Sub-toggles card
+ 
   subCard: {
     backgroundColor: "#FAFAFA", borderRadius: 18,
     paddingVertical: 4, paddingHorizontal: 16,

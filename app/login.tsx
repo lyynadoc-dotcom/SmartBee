@@ -1,4 +1,3 @@
-// login.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
@@ -12,47 +11,38 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth, db } from "./firebase"; // adjust path if needed
+import { auth, db } from "./firebase";
 
 export default function Login() {
   const router = useRouter();
 
-  const [email,          setEmail]          = useState("");
-  const [password,       setPassword]       = useState("");
-  const [showPassword,   setShowPassword]   = useState(false);
-  const [loadingReset,   setLoadingReset]   = useState(false);
+  const [email,        setEmail]        = useState("");
+  const [password,     setPassword]     = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loadingReset, setLoadingReset] = useState(false);
 
-  // ─── Save first-login date in Firestore (once) ───────────────────────────
   const setFirstLoginDate = async (uid: string) => {
     const ref  = doc(db, "users", uid);
     const snap = await getDoc(ref);
-
-    // Only write if the field doesn't exist yet
     if (!snap.exists() || !snap.data()?.firstLoginDate) {
       await setDoc(ref, { firstLoginDate: new Date().toISOString() }, { merge: true });
     }
   };
 
-  // ─── Login ────────────────────────────────────────────────────────────────
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert("Error", "Please enter your email and password");
       return;
     }
-
     try {
       const credential = await signInWithEmailAndPassword(
         auth,
         email.trim().toLowerCase(),
         password
       );
-
       await setFirstLoginDate(credential.user.uid);
-
-      // ✅ After login → go to SubscribeScreen
       router.replace("/SubscribeScreen");
     } catch (error: any) {
-      // Friendly Firebase error messages
       if (
         error.code === "auth/user-not-found" ||
         error.code === "auth/wrong-password" ||
@@ -69,45 +59,35 @@ export default function Login() {
     }
   };
 
-  // ─── Forgot Password ──────────────────────────────────────────────────────
   const handleForgotPassword = async () => {
-  if (!email.trim()) {
-    Alert.alert("Error", "Please enter your email first");
-    return;
-  }
+    if (!email.trim()) {
+      Alert.alert("Error", "Please enter your email first");
+      return;
+    }
+    setLoadingReset(true);
+    try {
+      await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+      Alert.alert("Success ✅", "Password reset email sent. Check your inbox.");
+    } catch (error: any) {
+      console.log("RESET PASSWORD ERROR:", error.code, error.message);
+      if (error.code === "auth/user-not-found") {
+        Alert.alert("Error", "No account found with this email.");
+      } else if (error.code === "auth/invalid-email") {
+        Alert.alert("Error", "Invalid email address.");
+      } else if (error.code === "auth/missing-email") {
+        Alert.alert("Error", "Please enter your email.");
+      } else {
+        Alert.alert("Error", error.message);
+      }
+    } finally {
+      setLoadingReset(false);
+    }
+  };
 
-  setLoadingReset(true);
-
-  try {
-    await sendPasswordResetEmail(auth, email.trim().toLowerCase());
-
-    Alert.alert(
-      "Success ✅",
-      "Password reset email sent. Check your inbox."
-    );
-  } catch (error: any) {
-  console.log("RESET PASSWORD ERROR:", error.code, error.message);
-
-  if (error.code === "auth/user-not-found") {
-    Alert.alert("Error", "No account found with this email.");
-  } else if (error.code === "auth/invalid-email") {
-    Alert.alert("Error", "Invalid email address.");
-  } else if (error.code === "auth/missing-email") {
-    Alert.alert("Error", "Please enter your email.");
-  } else {
-    Alert.alert("Error", error.message);
-  }
-}finally {
-    setLoadingReset(false);
-  }
-};
-
-  
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>SmartBee 🐝</Text>
 
-      {/* Email */}
       <TextInput
         placeholder="Email"
         style={styles.input}
@@ -117,7 +97,6 @@ export default function Login() {
         keyboardType="email-address"
       />
 
-      {/* Password + eye toggle */}
       <View style={styles.passwordWrapper}>
         <TextInput
           placeholder="Password"
@@ -130,27 +109,20 @@ export default function Login() {
           onPress={() => setShowPassword(!showPassword)}
           style={styles.eyeIcon}
         >
-          <Ionicons
-            name={showPassword ? "eye" : "eye-off"}
-            size={22}
-            color="#555"
-          />
+          <Ionicons name={showPassword ? "eye" : "eye-off"} size={22} color="#555" />
         </TouchableOpacity>
       </View>
 
-      {/* Forgot password */}
       <TouchableOpacity onPress={handleForgotPassword} disabled={loadingReset}>
         <Text style={styles.forgotText}>
           {loadingReset ? "Sending…" : "Forgot Password?"}
         </Text>
       </TouchableOpacity>
 
-      {/* Login button */}
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginText}>Log In</Text>
       </TouchableOpacity>
 
-      {/* Go to Sign Up */}
       <TouchableOpacity onPress={() => router.push("/signup")}>
         <Text style={styles.signupText}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
@@ -165,7 +137,7 @@ const styles = StyleSheet.create({
   passwordWrapper: { position: "relative", marginBottom: 1 },
   eyeIcon:         { position: "absolute", right: 12, top: "50%", transform: [{ translateY: -22 }] },
   forgotText:      { textAlign: "right", color: "#555", fontWeight: "400", marginBottom: 5, fontSize: 13 },
-  loginButton:     { backgroundColor: "#FFC107", padding: 11, borderRadius: 10, alignItems: "center", marginBottom:13 },
+  loginButton:     { backgroundColor: "#FFC107", padding: 11, borderRadius: 10, alignItems: "center", marginBottom: 13 },
   loginText:       { fontWeight: "bold" },
-  signupText:      { textAlign: "center", color: "#555"  },
+  signupText:      { textAlign: "center", color: "#555" },
 });

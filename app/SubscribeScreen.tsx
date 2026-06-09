@@ -64,29 +64,21 @@ const YEARLY_PLANS = [
   },
 ];
 
-// ─── Firebase helpers ─────────────────────────────────────────────────────────
-
-/**
- * Call this on SIGN UP only (not on login).
- * Creates the user doc with today as firstLoginDate.
- */
 export const initUserDoc = async (): Promise<void> => {
   const user = auth.currentUser;
   if (!user) return;
-  const ref = doc(db, "users", user.uid);
+  const ref  = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
     await setDoc(ref, {
-      firstLoginDate: new Date().toISOString(),
-      isSubscribed: false,
+      firstLoginDate:  new Date().toISOString(),
+      isSubscribed:    false,
       subscribedUntil: null,
+      trialStarted:    false,
     });
   }
 };
 
-/**
- * Returns true if the 30-day trial has expired AND there is no active subscription.
- */
 export const checkTrialExpired = async (): Promise<boolean> => {
   try {
     const user = auth.currentUser;
@@ -94,12 +86,9 @@ export const checkTrialExpired = async (): Promise<boolean> => {
     const snap = await getDoc(doc(db, "users", user.uid));
     if (!snap.exists()) return false;
     const data = snap.data();
-
-    // Has active subscription → never expired
     if (data.isSubscribed && data.subscribedUntil) {
       if (Date.now() < new Date(data.subscribedUntil).getTime()) return false;
     }
-
     if (!data.firstLoginDate) return false;
     const days = (Date.now() - new Date(data.firstLoginDate).getTime()) / (1000 * 60 * 60 * 24);
     return days >= 30;
@@ -108,9 +97,6 @@ export const checkTrialExpired = async (): Promise<boolean> => {
   }
 };
 
-/**
- * Returns how many trial days are left (0–30).
- */
 const getTrialDaysLeft = async (): Promise<number> => {
   try {
     const user = auth.currentUser;
@@ -126,7 +112,6 @@ const getTrialDaysLeft = async (): Promise<number> => {
   }
 };
 
-// ─── Card formatters ──────────────────────────────────────────────────────────
 const formatCardNumber = (val: string) =>
   val.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
 
@@ -150,28 +135,12 @@ type Plan = {
   badge?: string; months: number;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HOW TO USE THIS SCREEN:
-//
-//  SIGN UP flow  → navigate here directly. initUserDoc() is called inside.
-//                  User sees the screen and can start free trial OR subscribe.
-//
-//  LOGIN flow    → DO NOT navigate here. Instead, in your login handler do:
-//
-//    await initUserDoc(); // safe to call, won't overwrite existing doc
-//    const expired = await checkTrialExpired();
-//    if (expired) {
-//      router.replace("/subscribe");   // trial over → show paywall
-//    } else {
-//      router.replace("/hiveDashboard"); // still in trial → go to app
-//    }
-// ─────────────────────────────────────────────────────────────────────────────
 export default function SubscribeScreen() {
   const router = useRouter();
 
   const [trialDays,    setTrialDays]    = useState(30);
   const [expiredModal, setExpiredModal] = useState(false);
-  const [isNewUser,    setIsNewUser]    = useState(false); // true = came from sign-up
+  const [isNewUser,    setIsNewUser]    = useState(false);
 
   const [subModal,     setSubModal]     = useState(false);
   const [billing,      setBilling]      = useState<"monthly" | "yearly">("monthly");
@@ -197,22 +166,34 @@ export default function SubscribeScreen() {
 
   useEffect(() => {
     const init = async () => {
-      // initUserDoc only creates the doc if it doesn't exist yet (new user)
       await initUserDoc();
 
-      const expired = await checkTrialExpired();
-      const days    = await getTrialDaysLeft();
+      const user = auth.currentUser;
+      if (!user) return;
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const data = snap.exists() ? snap.data() : null;
 
-      setTrialDays(days);
+      if (data?.isSubscribed && data?.subscribedUntil) {
+        if (Date.now() < new Date(data.subscribedUntil).getTime()) {
+          router.replace("/hiveDashboard");
+          return;
+        }
+      }
 
-      if (expired) {
-        // Trial over → show expired modal (came from login redirect)
+      if (data?.trialStarted) {
+        const expired = await checkTrialExpired();
+        if (!expired) {
+          router.replace("/hiveDashboard");
+          return;
+        }
         setExpiredModal(true);
         setIsNewUser(false);
-      } else {
-        // Trial still active → this is a new sign-up, show free trial option
-        setIsNewUser(true);
+        return;
       }
+
+      const days = await getTrialDaysLeft();
+      setTrialDays(days);
+      setIsNewUser(true);
     };
     init();
 
@@ -297,6 +278,7 @@ export default function SubscribeScreen() {
       isSubscribed:    true,
       subscribedUntil: until.toISOString(),
       plan:            chosenPlan?.id ?? null,
+      trialStarted:    true,
     }, { merge: true });
 
     setTimeout(() => {
@@ -306,8 +288,10 @@ export default function SubscribeScreen() {
     }, 2200);
   };
 
-  // ── Start free trial: just go to dashboard, firstLoginDate already saved ──
-  const handleStartTrial = () => {
+  const handleStartTrial = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    await setDoc(doc(db, "users", user.uid), { trialStarted: true }, { merge: true });
     router.replace("/hiveDashboard");
   };
 
@@ -321,7 +305,6 @@ export default function SubscribeScreen() {
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} bounces={false}>
         <Animated.View style={[s.inner, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
-          {/* ── Hero ── */}
           <View style={s.heroWrap}>
             <Animated.View style={[s.beeBadge, { transform: [{ scale: beeScale }] }]}>
               <Text style={s.beeEmoji}>🐝</Text>
@@ -340,7 +323,6 @@ export default function SubscribeScreen() {
             </View>
           </View>
 
-          {/* ── Features ── */}
           <View style={s.featureCard}>
             {FEATURES.map((f, i) => (
               <Animated.View
@@ -363,36 +345,30 @@ export default function SubscribeScreen() {
             ))}
           </View>
 
-          {/* ── CTAs ── */}
           {isNewUser ? (
             <>
-              {/* New user: Start Free Trial + Subscribe option */}
               <Animated.View style={[s.ctaWrap, { transform: [{ scale: pulseAnim }] }]}>
                 <TouchableOpacity style={s.trialBtn} onPress={handleStartTrial} activeOpacity={0.87}>
                   <Ionicons name="rocket-outline" size={18} color="#fff" />
                   <Text style={s.trialBtnText}>Start Free Trial</Text>
                 </TouchableOpacity>
               </Animated.View>
-
               <TouchableOpacity style={s.subscribeBtn} onPress={openSubModal} activeOpacity={0.85}>
                 <Ionicons name="star-outline" size={17} color="#F59E0B" />
                 <Text style={s.subscribeBtnText}>Subscribe now</Text>
               </TouchableOpacity>
-
               <Text style={s.finePrint}>
                 {trialDays} days free · No payment required · Cancel anytime
               </Text>
             </>
           ) : (
             <>
-              {/* Expired user: only Subscribe */}
               <Animated.View style={[s.ctaWrap, { transform: [{ scale: pulseAnim }] }]}>
                 <TouchableOpacity style={s.trialBtn} onPress={openSubModal} activeOpacity={0.87}>
                   <Ionicons name="star-outline" size={18} color="#fff" />
                   <Text style={s.trialBtnText}>View Plans</Text>
                 </TouchableOpacity>
               </Animated.View>
-
               <Text style={s.finePrint}>Subscribe to continue using Smart Bee Pro</Text>
             </>
           )}
@@ -400,7 +376,6 @@ export default function SubscribeScreen() {
         </Animated.View>
       </ScrollView>
 
-      {/* ═══ SUBSCRIBE BOTTOM SHEET ═══ */}
       <Modal visible={subModal} transparent animationType="none" onRequestClose={closeSubModal}>
         <View style={s.overlay}>
           <TouchableOpacity style={s.overlayTap} activeOpacity={1} onPress={closeSubModal} />
@@ -459,7 +434,6 @@ export default function SubscribeScreen() {
         </View>
       </Modal>
 
-      {/* ═══ PAYMENT BOTTOM SHEET ═══ */}
       <Modal visible={payModal} transparent animationType="none" onRequestClose={closePayModal}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
           <View style={s.overlay}>
@@ -560,7 +534,6 @@ export default function SubscribeScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* ── Trial expired modal ── */}
       <Modal visible={expiredModal} transparent animationType="fade">
         <View style={s.centeredOverlay}>
           <View style={s.expiredBox}>

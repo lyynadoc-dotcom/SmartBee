@@ -13,7 +13,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguageState] = useState<Lang>("English");
 
-  // 🔄 load language when app starts
+  
   useEffect(() => {
     const load = async () => {
       const saved = await AsyncStorage.getItem("language");
@@ -22,7 +22,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     load();
   }, []);
 
-  // 💾 save language + update globally
   const setLanguage = async (lang: Lang) => {
     setLanguageState(lang);
     await AsyncStorage.setItem("language", lang);

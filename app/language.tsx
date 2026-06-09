@@ -13,21 +13,21 @@ import BackHeader from "./BackHeader";
 
 type Lang = "English" | "French" | "Arabic";
 
-// ─── Language options ──────────────────────────────────────────────────────────
+
 const LANGUAGES: { code: Lang; label: string; native: string; flag: string }[] = [
   { code: "English", label: "English", native: "English",  flag: "🇬🇧" },
   { code: "French",  label: "French",  native: "Français", flag: "🇫🇷" },
   { code: "Arabic",  label: "Arabic",  native: "العربية",  flag: "🇸🇦" },
 ];
 
-// ─── UI strings per language ───────────────────────────────────────────────────
+
 const UI: Record<Lang, { title: string; subtitle: string }> = {
   English: { title: "Language", subtitle: "Choose the language for the entire app" },
   French:  { title: "Langue",   subtitle: "Choisissez la langue de toute l'application" },
   Arabic:  { title: "اللغة",    subtitle: "اختر لغة التطبيق بالكامل" },
 };
 
-// ─── Main screen ───────────────────────────────────────────────────────────────
+
 export default function LanguageScreen() {
   const router  = useRouter();
   const context = useAppContext();
@@ -45,15 +45,15 @@ export default function LanguageScreen() {
   return (
     <View style={styles.container}>
 
-      {/* ← Back header */}
+    
       <BackHeader title={ui.title} />
 
       <ScrollView contentContainerStyle={styles.scroll}>
 
-        {/* Subtitle */}
+       
         <Text style={styles.subtitle}>{ui.subtitle}</Text>
 
-        {/* Language cards */}
+       
         <View style={styles.cardList}>
           {LANGUAGES.map((lang) => {
             const isSelected = picked === lang.code;
@@ -84,7 +84,7 @@ export default function LanguageScreen() {
   );
 }
 
-// ─── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: "#fff" },
   scroll:           { padding: 20, paddingBottom: 40 },

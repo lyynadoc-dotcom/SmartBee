@@ -1,4 +1,3 @@
-// SignUp.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -12,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth, db } from "./firebase"; // adjust path if needed
+import { auth, db } from "./firebase";
 
 export default function SignUp() {
   const router = useRouter();
@@ -30,7 +29,7 @@ export default function SignUp() {
     name: "", surname: "", email: "", password: "", confirmPassword: "",
   });
 
-  // ─── Validation (same rules as before) ───────────────────────────────────
+ 
   const validate = () => {
     let valid = true;
     const e = { name: "", surname: "", email: "", password: "", confirmPassword: "" };
@@ -55,7 +54,7 @@ export default function SignUp() {
     return valid;
   };
 
-  // ─── Sign Up ──────────────────────────────────────────────────────────────
+
   const handleSignUp = async () => {
     if (!validate()) {
       Alert.alert("Error", "Please fix the errors in the form");
@@ -63,7 +62,7 @@ export default function SignUp() {
     }
 
     try {
-      // 1️⃣  Create the user in Firebase Authentication
+      
       const credential = await createUserWithEmailAndPassword(
         auth,
         email.trim().toLowerCase(),
@@ -72,8 +71,7 @@ export default function SignUp() {
 
       const uid = credential.user.uid;
 
-      // 2️⃣  Store extra profile info in Firestore (name, surname)
-      //     Password is NOT stored here — Firebase Auth handles it securely
+   
            await setDoc(doc(db, "users", uid), {
   name,
   surname,
@@ -85,7 +83,7 @@ export default function SignUp() {
       Alert.alert("Success ✅", "Account created! Please log in.", [
         {
           text: "OK",
-          // ✅ After signup → go to Login
+        
           onPress: () => router.replace("/login"),
         },
       ]);
@@ -96,12 +94,12 @@ export default function SignUp() {
   );
 }
   }
-  // ─── UI ───────────────────────────────────────────────────────────────────
+ 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Account 🐝</Text>
 
-      {/* Name */}
+     
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Name"
@@ -112,7 +110,7 @@ export default function SignUp() {
         {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
       </View>
 
-      {/* Surname */}
+   
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Surname"
@@ -123,7 +121,7 @@ export default function SignUp() {
         {errors.surname ? <Text style={styles.errorText}>{errors.surname}</Text> : null}
       </View>
 
-      {/* Email */}
+     
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Email"
@@ -136,7 +134,7 @@ export default function SignUp() {
         {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
       </View>
 
-      {/* Password */}
+   
       <View style={styles.inputContainer}>
         <View style={styles.passwordWrapper}>
           <TextInput
@@ -153,7 +151,6 @@ export default function SignUp() {
         {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
       </View>
 
-      {/* Confirm Password */}
       <View style={styles.inputContainer}>
         <View style={styles.passwordWrapper}>
           <TextInput
@@ -170,12 +167,11 @@ export default function SignUp() {
         {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
       </View>
 
-      {/* Sign Up Button */}
       <TouchableOpacity style={styles.button} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
 
-      {/* Go to Login */}
+     
       <TouchableOpacity onPress={() => router.push("/login")}>
         <Text style={styles.loginText}>Already have an account? Login</Text>
       </TouchableOpacity>

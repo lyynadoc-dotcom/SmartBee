@@ -53,7 +53,6 @@ const buildAlertMsg = (
   return msg.trim();
 };
 
-// ✅ FIX 2: Wrap notifications in try/catch — silently skip if running in Expo Go
 const sendSituationNotifications = async (
   hiveName: string,
   t: typeof translations.English,
@@ -102,12 +101,9 @@ const sendSituationNotifications = async (
         trigger: null,
       });
     }
-  } catch (e) {
-    // Silently ignore — push notifications not supported in Expo Go SDK 53+
-  }
+  } catch (e) {}
 };
 
-// ✅ FIX 2: Wrap notification handler in try/catch
 try {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -115,9 +111,7 @@ try {
       shouldShowBanner: true, shouldShowList: true,
     }),
   });
-} catch (e) {
-  // Silently ignore in Expo Go
-}
+} catch (e) {}
 
 function MenuItem({ icon, label, color = "#222", onPress }: {
   icon: any; label: string; color?: string; onPress: () => void;
@@ -198,17 +192,12 @@ export default function HiveDashboard() {
       .start(() => setAlertVisible(false));
   };
 
-  // ✅ FIX 1: REMOVED signInAnonymously — it was causing auth/admin-restricted-operation
-  // The user is already signed in via email/password from login.tsx
-  // No anonymous auth needed here at all
-
   useEffect(() => {
     checkTrialExpired().then((expired) => {
       if (expired) router.replace("/SubscribeScreen");
     });
   }, []);
 
-  // ✅ Load user name + photo from Firebase Auth + Firestore
   const loadUserFromFirebase = async () => {
     try {
       const user = auth.currentUser;
