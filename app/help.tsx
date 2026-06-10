@@ -21,7 +21,6 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 
 type Lang = "English" | "French" | "Arabic";
 
-
 type Disease = {
   icon: string;
   name: string;
@@ -33,7 +32,6 @@ type Disease = {
   whatToDo: string;
   symptoms: string[];
 };
-
 
 const DISEASES: Record<Lang, Disease[]> = {
   English: [
@@ -192,7 +190,6 @@ const DISEASES: Record<Lang, Disease[]> = {
 const FAQ_DATA: Record<Lang, { q: string; a: string }[]> = {
   English: [
     { q: "How do I add a hive to the app?", a: "Tap the yellow + button at the bottom-right of the dashboard. The app will search for the next hive in sequence (Hive 1, Hive 2…). Make sure the sensor device is powered on and connected to Wi-Fi before tapping." },
-   
     { q: "Can I monitor more than one hive?", a: "Yes. Smart Bee supports unlimited hives per account." },
     { q: "What do the 3 alert levels mean?", a: "⚠️ WARNING — 1 anomaly detected. Monitor the situation.\n🔴 HIGH — 2 anomalies at the same time. Inspect within 24 hours.\n🚨 CRITICAL — 3 or more anomalies, or an intruder detected. Inspect immediately." },
     { q: "How do I change the app language?", a: "Open the side menu (≡) → tap Language → choose English, French, or Arabic. All app text including alerts and notifications will update instantly." },
@@ -203,17 +200,14 @@ const FAQ_DATA: Record<Lang, { q: string; a: string }[]> = {
     { q: "What is the normal temperature inside a hive?", a: "A healthy colony maintains 32–36°C inside the brood area year-round. Above 38°C is an early warning. Above 40°C stresses the brood. Above 42°C causes irreversible brood damage — ventilate immediately." },
     { q: "What is a normal humidity level?", a: "Optimal humidity is 50–70%. Above 80% promotes mold and disease. Above 85% is critical — improve ventilation immediately and check for water leaks near the hive." },
     { q: "What does the hive weight tell me?", a: "Weight is one of the most useful indicators:\n• Steady increase → active nectar flow, good production.\n• Sudden drop > 1 kg overnight → swarming may have occurred.\n• Gradual decrease in winter → normal food consumption.\n• No change in summer → colony may not be foraging." },
- 
-    { q: "What does abnormal bee sound mean?", a: "The sensor measures sound level on a scale of 0.0 to 1.0 units. Normal activity is between 0.40 and 0.70 units.\n• Below 0.40 units → colony is unusually quiet. Check for queen loss or pesticide exposure.\n• Above 0.70 units → colony is agitated. Swarming may occur within 12–24 hours. Inspect for queen cells." },
-    
-    { q: "What is swarming and how can I prevent it?", a: "Swarming is when the old queen leaves with half the colony to start a new hive. Signs: loud buzzing spike (sound above 0.70 units), weight drop > 1 kg, many bees clustering outside.\n\nPrevention:\n• Add a super before the hive becomes overcrowded.\n• Check for and remove queen cells.\n• Ensure the hive has good ventilation in hot weather." },
+    { q: "What does abnormal bee sound mean?", a: "The sensor measures sound level in decibels (dB). Normal activity is between 45 dB and 65 dB.\n• Below 45 dB → colony is unusually quiet. Check for queen loss or pesticide exposure.\n• Above 65 dB → colony is agitated. Swarming may occur within 12–24 hours. Inspect for queen cells." },
+    { q: "What is swarming and how can I prevent it?", a: "Swarming is when the old queen leaves with half the colony to start a new hive. Signs: loud buzzing spike (sound above 65 dB), weight drop > 1 kg, many bees clustering outside.\n\nPrevention:\n• Add a super before the hive becomes overcrowded.\n• Check for and remove queen cells.\n• Ensure the hive has good ventilation in hot weather." },
     { q: "What does an intruder alert mean?", a: "The sensor detected unusual vibrations or motion at the hive entrance — typically a hornet, wasp, or small mammal.\n\nWhat to do:\n• Inspect the entrance immediately.\n• Look for dead bees or unusual damage near the entry.\n• Consider installing an entrance reducer to protect the colony." },
     { q: "How often should I inspect my hive?", a: "• Spring & summer: at least once a week.\n• Autumn: every 2 weeks to check food stores.\n• Winter: avoid opening the hive. Monitor via the app only.\n\nAlways inspect on a warm, calm, sunny day when bees are actively foraging." },
     { q: "How do I prepare my hive for winter?", a: "• Ensure the colony has at least 15–20 kg of honey stores.\n• Reduce the hive entrance to prevent cold drafts and mice.\n• Insulate the top of the hive.\n• Treat for Varroa mites in late summer/early autumn.\n• Monitor weight weekly through the app — a sharp drop means the colony is starving." },
   ],
   French: [
     { q: "Comment ajouter une ruche dans l'application ?", a: "Appuyez sur le bouton jaune + en bas à droite du tableau de bord. L'application recherche la prochaine ruche en séquence (Ruche 1, Ruche 2…). Assurez-vous que le capteur est allumé et connecté au Wi-Fi avant d'appuyer." },
-  
     { q: "Puis-je surveiller plusieurs ruches ?", a: "Oui. Smart Bee prend en charge un nombre illimité de ruches par compte." },
     { q: "Que signifient les 3 niveaux d'alerte ?", a: "⚠️ AVERTISSEMENT — 1 anomalie. Surveillez la situation.\n🔴 ÉLEVÉ — 2 anomalies simultanées. Inspectez dans les 24 heures.\n🚨 CRITIQUE — 3 anomalies ou plus, ou intrus détecté. Inspectez immédiatement." },
     { q: "Comment changer la langue de l'application ?", a: "Ouvrez le menu latéral (≡) → Langue → choisissez Anglais, Français ou Arabe. Tous les textes y compris les alertes et notifications se mettent à jour instantanément." },
@@ -224,17 +218,14 @@ const FAQ_DATA: Record<Lang, { q: string; a: string }[]> = {
     { q: "Quelle est la température normale dans une ruche ?", a: "Une colonie saine maintient 32–36°C dans la zone de couvain. Au-dessus de 38°C : signal précoce. Au-dessus de 40°C : stress du couvain. Au-dessus de 42°C : dommages irréversibles — ventilez immédiatement." },
     { q: "Quel est le niveau d'humidité normal ?", a: "L'humidité optimale est de 50–70%. Au-dessus de 80% : risque de moisissures. Au-dessus de 85% : critique — améliorez la ventilation immédiatement et vérifiez les infiltrations d'eau." },
     { q: "Que m'indique le poids de la ruche ?", a: "Le poids est un indicateur précieux :\n• Augmentation constante → flux de nectar actif.\n• Chute soudaine > 1 kg en une nuit → essaimage probable.\n• Diminution progressive en hiver → consommation normale.\n• Aucun changement en été → la colonie ne butine peut-être pas." },
-   
-    { q: "Que signifie un son anormal ?", a: "Le capteur mesure le niveau sonore sur une échelle de 0,0 à 1,0 unité. Niveau normal : entre 0,40 et 0,70 unité.\n• Inférieur à 0,40 unité → colonie anormalement silencieuse. Vérifiez la reine.\n• Supérieur à 0,70 unité → colonie agitée. Essaimage possible dans 12–24 h. Inspectez les cellules royales." },
-  
-    { q: "Qu'est-ce que l'essaimage et comment le prévenir ?", a: "L'essaimage est le départ de la vieille reine avec la moitié de la colonie. Signes : pic sonore (au-dessus de 0,70 unité), chute de poids > 1 kg, abeilles en grappes à l'extérieur.\n\nPrévention :\n• Ajoutez une hausse avant surpopulation.\n• Retirez les cellules royales.\n• Assurez une bonne ventilation." },
+    { q: "Que signifie un son anormal ?", a: "Le capteur mesure le niveau sonore en décibels (dB). Niveau normal : entre 45 dB et 65 dB.\n• Inférieur à 45 dB → colonie anormalement silencieuse. Vérifiez la reine ou une exposition aux pesticides.\n• Supérieur à 65 dB → colonie agitée. Essaimage possible dans 12–24 h. Inspectez les cellules royales." },
+    { q: "Qu'est-ce que l'essaimage et comment le prévenir ?", a: "L'essaimage est le départ de la vieille reine avec la moitié de la colonie. Signes : pic sonore (au-dessus de 65 dB), chute de poids > 1 kg, abeilles en grappes à l'extérieur.\n\nPrévention :\n• Ajoutez une hausse avant surpopulation.\n• Retirez les cellules royales.\n• Assurez une bonne ventilation." },
     { q: "Que signifie une alerte intrusion ?", a: "Le capteur a détecté des vibrations inhabituelles à l'entrée — frelon, guêpe ou petit mammifère.\n\nÀ faire :\n• Inspectez l'entrée immédiatement.\n• Cherchez des abeilles mortes ou des dégâts.\n• Installez un réducteur d'entrée." },
     { q: "À quelle fréquence inspecter ma ruche ?", a: "• Printemps & été : au moins une fois par semaine.\n• Automne : toutes les 2 semaines.\n• Hiver : n'ouvrez pas la ruche. Surveillez via l'application.\n\nInspectez toujours par temps chaud, calme et ensoleillé." },
     { q: "Comment préparer la ruche pour l'hiver ?", a: "• Assurez au moins 15–20 kg de réserves de miel.\n• Réduisez l'entrée contre le froid et les souris.\n• Isolez le dessus de la ruche.\n• Traitez contre le Varroa fin été/début automne.\n• Surveillez le poids hebdomadairement — une chute brutale signifie une famine." },
   ],
   Arabic: [
     { q: "كيف أضيف خلية في التطبيق؟", a: "اضغط على زر + الأصفر في أسفل يمين لوحة التحكم. سيبحث التطبيق عن الخلية التالية في التسلسل (Hive 1، Hive 2...). تأكد من تشغيل جهاز الاستشعار واتصاله بالـ Wi-Fi قبل الضغط." },
-  
     { q: "هل يمكنني مراقبة أكثر من خلية؟", a: "نعم. يدعم Smart Bee عدداً غير محدود من الخلايا لكل حساب." },
     { q: "ماذا تعني مستويات التنبيه الثلاثة؟", a: "⚠️ تحذير — شذوذ واحد. راقب الوضع.\n🔴 عالٍ — شذوذان في نفس الوقت. افحص خلال 24 ساعة.\n🚨 حرج — 3 شذوذات أو أكثر أو دخيل مكتشف. افحص فوراً." },
     { q: "كيف أغير لغة التطبيق؟", a: "افتح القائمة الجانبية (≡) ← اللغة ← اختر الإنجليزية أو الفرنسية أو العربية. تتحدث جميع نصوص التطبيق بما فيها التنبيهات والإشعارات فوراً." },
@@ -245,23 +236,19 @@ const FAQ_DATA: Record<Lang, { q: string; a: string }[]> = {
     { q: "ما درجة الحرارة الطبيعية داخل الخلية؟", a: "تحافظ المستعمرة الصحية على 32–36°C في منطقة الحضنة. فوق 38°C: تحذير مبكر. فوق 40°C: إجهاد الحضنة. فوق 42°C: أضرار لا رجعة فيها — قم بتهوية الخلية فوراً." },
     { q: "ما مستوى الرطوبة الطبيعي؟", a: "الرطوبة المثالية 50–70%. فوق 80%: خطر العفن والأمراض. فوق 85%: حالة حرجة — حسّن التهوية فوراً وتحقق من وجود تسربات مياه قرب الخلية." },
     { q: "ماذا يخبرني وزن الخلية؟", a: "الوزن مؤشر قيّم جداً:\n• زيادة مستمرة ← تدفق الرحيق نشط، إنتاج جيد.\n• انخفاض مفاجئ > 1 كغ ليلاً ← ربما حدث تأرجح.\n• نقصان تدريجي شتاءً ← استهلاك طبيعي.\n• لا تغيير في الصيف ← قد لا تجمع المستعمرة الرحيق." },
-    
-    { q: "ماذا يعني الصوت غير الطبيعي؟", a: "يقيس الجهاز مستوى الصوت على مقياس من 0.0 إلى 1.0 وحدة. المستوى الطبيعي: بين 0.40 و0.70 وحدة.\n• أقل من 0.40 وحدة ← المستعمرة هادئة بشكل غير طبيعي. تحقق من الملكة.\n• أعلى من 0.70 وحدة ← المستعمرة مضطربة. تأرجح محتمل خلال 12–24 ساعة. افحص خلايا الملكة." },
-   
-    { q: "ما هو التأرجح وكيف أمنعه؟", a: "التأرجح هو خروج الملكة القديمة مع نصف المستعمرة. العلامات: ارتفاع حاد في الصوت فوق 0.70 وحدة، انخفاض وزن > 1 كغ، تجمع النحل خارج الخلية.\n\nالوقاية:\n• أضف طابقاً قبل اكتظاظ الخلية.\n• أزل خلايا الملكة.\n• تأكد من التهوية الجيدة في الحر." },
+    { q: "ماذا يعني الصوت غير الطبيعي؟", a: "يقيس الجهاز مستوى الصوت بوحدة الديسيبل (dB). المستوى الطبيعي: بين 45 dB و65 dB.\n• أقل من 45 dB ← المستعمرة هادئة بشكل غير طبيعي. تحقق من الملكة أو تعرّض المستعمرة للمبيدات.\n• أعلى من 65 dB ← المستعمرة مضطربة. تأرجح محتمل خلال 12–24 ساعة. افحص خلايا الملكة." },
+    { q: "ما هو التأرجح وكيف أمنعه؟", a: "التأرجح هو خروج الملكة القديمة مع نصف المستعمرة. العلامات: ارتفاع حاد في الصوت فوق 65 dB، انخفاض وزن > 1 كغ، تجمع النحل خارج الخلية.\n\nالوقاية:\n• أضف طابقاً قبل اكتظاظ الخلية.\n• أزل خلايا الملكة.\n• تأكد من التهوية الجيدة في الحر." },
     { q: "ماذا يعني تنبيه الدخيل؟", a: "اكتشف الجهاز اهتزازات غير عادية عند مدخل الخلية — عادةً دبور أو زنبور أو حيوان صغير.\n\nماذا تفعل:\n• افحص المدخل فوراً.\n• ابحث عن نحل ميت أو أضرار قرب المدخل.\n• فكّر في تركيب مُضيّق المدخل لحماية المستعمرة." },
     { q: "كم مرة يجب أن أفحص خليتي؟", a: "• الربيع والصيف: مرة أسبوعياً على الأقل.\n• الخريف: كل أسبوعين للتحقق من المخزون.\n• الشتاء: لا تفتح الخلية. راقبها عبر التطبيق فقط.\n\nافحص دائماً في يوم دافئ هادئ مشمس." },
     { q: "كيف أجهّز خليتي للشتاء؟", a: "• تأكد من وجود 15–20 كغ على الأقل من مخزون العسل.\n• قلّص مدخل الخلية لمنع البرد والفئران.\n• عزّل الجزء العلوي من الخلية.\n• عالج من حلم الفاروا في أواخر الصيف.\n• راقب الوزن أسبوعياً — انخفاض حاد يعني أن المستعمرة تتضور جوعاً." },
   ],
 };
 
-
 const TIPS: Record<Lang, { icon: string; text: string }[]> = {
   English: [
     { icon: "🌡️", text: "Temperature above 38°C is an early warning. Act before it reaches 40°C." },
     { icon: "💧", text: "Humidity above 80% promotes mold. Improve ventilation immediately." },
-
-    { icon: "🔊", text: "A sound spike above 0.70 units often predicts swarming 12–24 h ahead." },
+    { icon: "🔊", text: "A sound spike above 65 dB often predicts swarming 12–24 h ahead." },
     { icon: "⚖️", text: "A weight drop over 1 kg overnight usually means swarming occurred." },
     { icon: "🔍", text: "Inspect your hive at least once a week in spring and summer." },
     { icon: "🔋", text: "Check device battery monthly. Recharge when below 20%." },
@@ -269,8 +256,7 @@ const TIPS: Record<Lang, { icon: string; text: string }[]> = {
   French: [
     { icon: "🌡️", text: "Température > 38°C : signal précoce. Agissez avant 40°C." },
     { icon: "💧", text: "Humidité > 80% favorise les moisissures. Améliorez la ventilation." },
-   
-    { icon: "🔊", text: "Un pic sonore > 0,70 unité prédit souvent un essaimage 12–24 h à l'avance." },
+    { icon: "🔊", text: "Un pic sonore > 65 dB prédit souvent un essaimage 12–24 h à l'avance." },
     { icon: "⚖️", text: "Une chute > 1 kg en une nuit indique souvent un essaimage." },
     { icon: "🔍", text: "Inspectez la ruche au moins une fois par semaine au printemps et en été." },
     { icon: "🔋", text: "Vérifiez la batterie mensuellement. Rechargez sous 20%." },
@@ -278,14 +264,12 @@ const TIPS: Record<Lang, { icon: string; text: string }[]> = {
   Arabic: [
     { icon: "🌡️", text: "حرارة أعلى من 38°C تحذير مبكر. تصرف قبل بلوغ 40°C." },
     { icon: "💧", text: "رطوبة أعلى من 80% تسبب العفن. حسّن التهوية فوراً." },
-   
-    { icon: "🔊", text: "ارتفاع الصوت فوق 0.70 وحدة غالباً ينذر بتأرجح خلال 12–24 ساعة." },
+    { icon: "🔊", text: "ارتفاع الصوت فوق 65 dB غالباً ينذر بتأرجح خلال 12–24 ساعة." },
     { icon: "⚖️", text: "انخفاض وزن > 1 كغ ليلاً يعني على الأرجح حدوث تأرجح." },
     { icon: "🔍", text: "افحص خليتك مرة أسبوعياً في الربيع والصيف." },
     { icon: "🔋", text: "تحقق من بطارية الجهاز شهرياً. اشحنها عند انخفاضها عن 20%." },
   ],
 };
-
 
 const UI_TEXT: Record<Lang, {
   pageTitle: string; tips: string; diseases: string; selectHint: string;
@@ -315,7 +299,6 @@ const UI_TEXT: Record<Lang, {
   },
 };
 
-
 function DiseaseRow({ d, onPress }: { d: Disease; onPress: () => void }) {
   return (
     <TouchableOpacity style={dStyles.row} onPress={onPress} activeOpacity={0.75}>
@@ -329,7 +312,6 @@ function DiseaseRow({ d, onPress }: { d: Disease; onPress: () => void }) {
   );
 }
 
-
 function DiseaseModal({ d, ui, visible, onClose }: {
   d: Disease | null; ui: typeof UI_TEXT.English; visible: boolean; onClose: () => void;
 }) {
@@ -338,32 +320,25 @@ function DiseaseModal({ d, ui, visible, onClose }: {
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={dStyles.overlay}>
         <View style={[dStyles.sheet, { backgroundColor: d.severityBg }]}>
-         
           <View style={[dStyles.stripe, { backgroundColor: d.severityColor }]}>
             <Text style={dStyles.stripeText} numberOfLines={1}>{d.icon}  {d.name}</Text>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons name="close" size={22} color="#fff" />
             </TouchableOpacity>
           </View>
-
           <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
-          
             <View style={[dStyles.sevPill, { borderColor: d.severityColor }]}>
               <Text style={[dStyles.sevPillText, { color: d.severityColor }]}>{ui.severity}: {d.severity}</Text>
             </View>
-
             <Text style={dStyles.desc}>{d.description}</Text>
-
             <View style={dStyles.block}>
               <Text style={[dStyles.blockLabel, { color: d.severityColor }]}>📡 {ui.sensorSignals}</Text>
               <Text style={dStyles.blockBody}>{d.sensorSignals}</Text>
             </View>
-
             <View style={dStyles.block}>
               <Text style={[dStyles.blockLabel, { color: d.severityColor }]}>✅ {ui.whatToDo}</Text>
               <Text style={dStyles.blockBody}>{d.whatToDo}</Text>
             </View>
-
             <View style={dStyles.block}>
               <Text style={[dStyles.blockLabel, { color: d.severityColor }]}>🔍 {ui.symptoms}</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
@@ -375,7 +350,6 @@ function DiseaseModal({ d, ui, visible, onClose }: {
               </View>
             </View>
           </ScrollView>
-
           <TouchableOpacity style={[dStyles.closeBtn, { backgroundColor: d.severityColor }]} onPress={onClose}>
             <Text style={dStyles.closeBtnText}>{ui.close}</Text>
           </TouchableOpacity>
@@ -384,7 +358,6 @@ function DiseaseModal({ d, ui, visible, onClose }: {
     </Modal>
   );
 }
-
 
 function AccordionItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [open, setOpen] = useState(false);
@@ -409,7 +382,6 @@ function AccordionItem({ q, a, index }: { q: string; a: string; index: number })
   );
 }
 
-
 export default function Help() {
   const { language } = useAppContext();
   const lang     = (language as Lang) || "English";
@@ -423,13 +395,8 @@ export default function Help() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
-
-      
       <BackHeader title={ui.pageTitle} />
-
       <ScrollView contentContainerStyle={s.scroll}>
-
-      
         <Text style={s.sectionTitle}>💡 {ui.tips}</Text>
         <View style={s.tipsGrid}>
           {tips.map((t, i) => (
@@ -440,7 +407,6 @@ export default function Help() {
           ))}
         </View>
 
-       
         <Text style={s.sectionTitle}>🐛 {ui.diseases}</Text>
         <Text style={s.hint}>{ui.selectHint}</Text>
         <View style={dStyles.listBox}>
@@ -452,13 +418,11 @@ export default function Help() {
           ))}
         </View>
 
-       
         <Text style={s.sectionTitle}>❓ {ui.faq}</Text>
         <View style={s.faqBox}>
           {faqs.map((item, i) => <AccordionItem key={i} index={i} q={item.q} a={item.a} />)}
         </View>
 
-       
         <View style={s.contactBox}>
           <Ionicons name="mail-outline" size={20} color="#FFC107" />
           <Text style={s.contactText}>
@@ -466,7 +430,6 @@ export default function Help() {
             <Text style={{ color: "#FFC107", fontWeight: "bold" }}>smartbee@gmail.com</Text>
           </Text>
         </View>
-
       </ScrollView>
 
       <DiseaseModal
@@ -478,7 +441,6 @@ export default function Help() {
     </View>
   );
 }
-
 
 const s = StyleSheet.create({
   scroll:       { padding: 20, paddingBottom: 36 },
@@ -506,7 +468,6 @@ const dStyles = StyleSheet.create({
   rowName:      { fontSize: 14.5, fontWeight: "700", color: "#1a1a1a", marginBottom: 2 },
   rowSev:       { fontSize: 12, fontWeight: "600" },
   divider:      { height: 1, backgroundColor: "#F0F0F0", marginHorizontal: 16 },
-  // modal
   overlay:      { flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" },
   sheet:        { borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: "88%", overflow: "hidden" },
   stripe:       { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 15 },
